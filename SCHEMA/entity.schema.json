@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "attention-research minimal entity",
+  "type": "object",
+  "required": ["id", "type", "name", "topic", "attributes", "createdAt", "updatedAt"],
+  "properties": {
+    "id": { "type": "string" },
+    "type": { "type": "string", "enum": ["person", "company", "paper"] },
+    "name": { "type": "string" },
+    "topic": { "type": "string" },
+    "attributes": { "type": "object", "additionalProperties": { "type": "string" } },
+    "createdAt": { "type": "string" },
+    "updatedAt": { "type": "string" }
+  },
+  "additionalProperties": false
+}

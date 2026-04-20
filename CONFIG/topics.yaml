@@ -1,0 +1,39 @@
+topics:
+  us-iran-conflict:
+    display_name: "US-Iran Conflict"
+    description: "US-Iran tensions, Hormuz, nuclear talks, sanctions"
+    enabled: true
+    search_query: "US Iran conflict Hormuz nuclear talks"
+
+  ai:
+    display_name: "AI / Tech"
+    description: "Frontier AI, infra, chip policy, regulation"
+    enabled: true
+    search_query: "AI artificial intelligence frontier labs regulation"
+
+  geopolitics:
+    display_name: "Geopolitics"
+    description: "Power shifts, diplomacy, bloc formation, trade wars"
+    enabled: true
+    search_query: "geopolitics diplomacy trade war power shifts"
+
+  finance-markets:
+    display_name: "Finance / Markets"
+    description: "Equities, bonds, rates, commodities, macro"
+    enabled: true
+    search_query: "financial markets equities macro economy central bank"
+
+  climate-changes:
+    display_name: "Climate Changes"
+    description: "Physical events, policy, transition risk"
+    enabled: true
+    search_query: "climate change extreme weather energy transition"
+
+  bio-tech:
+    display_name: "Biotech"
+    description: "Clinical results, FDA decisions, drug pipelines"
+    enabled: true
+    search_query: "biotech clinical results FDA drug approval"
+
+config_version: "1.0.0"
+last_updated: "2026-04-20"

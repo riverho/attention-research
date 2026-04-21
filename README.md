@@ -175,23 +175,18 @@ Agent extracts the framework and shows you the topic prompt. Approve to activate
 
 ## Default Topics
 
-Public topic files currently included in the repo:
+Ships with **3 topics enabled by default**. Three more are included as example topic files, disabled out of the box — flip `enabled: true` in `CONFIG/topics.yaml` to activate them.
 
-| Topic | What it tracks |
-|-------|----------------|
-| `us-iran-conflict` | US-Iran tensions, Hormuz, nuclear talks, sanctions |
-| `ai` | Frontier labs, infra, chip policy, regulation |
-| `geopolitics` | Power shifts, diplomacy, bloc formation |
-| `finance-markets` | Equities, bonds, rates, commodities, macro |
-| `climate-changes` | Physical events, policy, transition risk |
-| `bio-tech` | Clinical results, FDA decisions, drug pipelines |
+| Topic | Default | What it tracks |
+|-------|---------|----------------|
+| `us-iran-conflict` | on | US-Iran tensions, Hormuz, nuclear talks, sanctions |
+| `ai` | on | Frontier labs, infra, chip policy, regulation |
+| `finance-markets` | on | Equities, bonds, rates, commodities, macro |
+| `geopolitics` | off | Power shifts, diplomacy, bloc formation |
+| `climate-changes` | off | Physical events, policy, transition risk |
+| `bio-tech` | off | Clinical results, FDA decisions, drug pipelines |
 
-Initial OSS enabled set in `CONFIG/topics.yaml`:
-- `us-iran-conflict`
-- `ai`
-- `finance-markets`
-
-Other public topic files may remain in the repo as examples, but they do not need to be enabled by default.
+`INSTALL/install.sh --fresh` only provisions topic directories for enabled topics, so disabled examples cost nothing at runtime.
 
 ---
 

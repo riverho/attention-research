@@ -21,10 +21,10 @@ Before activating any topic, verify:
 
 | Requirement | How to check | If missing |
 |-------------|--------------|------------|
-| **Tavily API key** | `echo $TAVILY_API_KEY` non-empty | Get free key at tavily.com |
+| **Web search tool** | Agent has a working web_search capability | Configure the agent's search provider |
 | **OpenClaw cron daemon** | `openclaw cron status` shows jobs | Start with `openclaw gateway start` |
 | **Delivery channel** | Telegram chat_id or WhatsApp configured | Ask user for Telegram chat ID |
-| **Research root** | `~/.openclaw/workspace/notes/research-v2/` exists | Run `SCRIPTS/setup-cron.sh` |
+| **Research root** | `~/.openclaw/workspace/docs/research/` exists | Run `SCRIPTS/setup-cron.sh` |
 
 If a requirement is missing:
 ```

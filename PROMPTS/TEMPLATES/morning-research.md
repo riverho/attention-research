@@ -28,9 +28,10 @@ For each topic in CONFIG/topics.yaml:
 
 ## Step 3: Search
 
-Run Tavily search (web_search) per topic:
+Run the agent's web search tool per topic:
+- Query: `search_query` from `CONFIG/topics.yaml`
 - Max results: 8
-- Time range: day
+- Time range: last 24h (or tool equivalent)
 
 ---
 

@@ -8,6 +8,47 @@ An agentic workflow that monitors topics on a twice-daily cadence, connects sign
 
 ## For Agents — How to Run This
 
+### Install From GitHub
+
+For OpenClaw, Hermes, or any agent that can run shell commands, install directly from GitHub with either `git clone` or a `curl` tarball flow.
+
+```bash
+# git clone path
+mkdir -p ~/.openclaw/skills
+git clone https://github.com/riverho/attention-research.git ~/.openclaw/skills/attention-research
+cd ~/.openclaw/skills/attention-research
+bash INSTALL/install.sh --fresh
+```
+
+```bash
+# curl tarball path
+mkdir -p ~/.openclaw/skills && \
+cd ~/.openclaw/skills && \
+curl -L https://github.com/riverho/attention-research/archive/refs/heads/master.tar.gz \
+  | tar -xz && \
+mv attention-research-master attention-research && \
+cd attention-research && \
+bash INSTALL/install.sh --fresh
+```
+
+### Agent Installation + Onboarding Contract
+
+Any agent using this repo should follow this order:
+
+1. Install the repo into `~/.openclaw/skills/attention-research`
+2. Ask for the default research root:
+   - preferred: `~/.openclaw/workspace/docs/research`
+   - fallback: `~/docs/research`
+3. Ask for the delivery channel configuration:
+   - Telegram chat ID or WhatsApp recipient
+4. Present the default OSS topic set:
+   - `us-iran-conflict`
+   - `ai`
+   - `finance-markets`
+5. For each selected topic, read `PROMPTS/TOPICS/<topic>.md` and extract the entity framework / key actors before activation
+6. Ask whether to schedule the morning and afternoon cron jobs
+7. Only after approval: run install/setup and register cron
+
 ### Prompt Stack Order
 
 ```
@@ -26,13 +67,15 @@ CORE is the foundation. TOPICS inherits from it — adds domain nuance, never co
 
 ```
 1. Read topics/<topic>/META.json
-2. Freshness gate — skip if already updated this slot
-3. Run Tavily search (web_search tool) — max 8 results, time range: day
-4. Write news file: topics/<topic>/news/<topic>-YYYY-MM-DD.md
-5. Update META.json timestamps
-6. On failure: meta_record_failure, retry once if allowed
-7. After all topics: produce digest from news files, not from new search
-8. Deliver via message tool (Telegram or WhatsApp)
+2. Read PROMPTS/TOPICS/<topic>.md as the live monitoring note for that topic
+3. Freshness gate — skip if already updated this slot
+4. Run the agent's web search tool — max 8 results, time range: last 24h
+5. Write news file: topics/<topic>/news/<topic>-YYYY-MM-DD.md
+6. Update META.json timestamps
+7. On failure: meta_record_failure, retry once if allowed
+8. After all topics: produce digest from news files, not from new search
+9. Deliver via message tool (Telegram or WhatsApp)
+10. If key event / threshold criteria in TOPICS/<topic>.md is met, alert the user explicitly
 ```
 
 ### META.json Freshness Contract
@@ -55,14 +98,17 @@ CORE is the foundation. TOPICS inherits from it — adds domain nuance, never co
 
 ```
 1. Load PROMPTS/TEMPLATES/onboarding.md
-2. Check requirements (TAVILY_API_KEY, cron daemon, delivery channel, research root)
-3. If requirements not met: tell human what's missing
-4. If topic matches a pre-built template: propose defaults
-5. If topic is new: propose generic entity weights + signal criteria + cadence
-6. User approves / adjusts / drops a paper
-7. If paper: read it, extract framework → write PROMPTS/TOPICS/<slug>.md
-8. Show user the framework, ask for approval
-9. On approval: add to CONFIG/topics.yaml, run setup-cron.sh, activate
+2. Check requirements (agent web search tool, cron daemon, delivery channel, research root)
+3. Ask the user to confirm the default research root:
+   - ~/.openclaw/workspace/docs/research
+   - or ~/docs/research
+4. Present the default OSS topics first
+5. If topic matches a pre-built template: propose defaults
+6. If topic is new: propose generic entity weights + signal criteria + cadence
+7. Read or build PROMPTS/TOPICS/<slug>.md and extract the entity framework back to the user
+8. Ask whether to activate monitoring for the topic
+9. Ask whether to schedule the morning and afternoon cron jobs
+10. On approval: add to CONFIG/topics.yaml, run setup-cron.sh, activate
 ```
 
 ### Building a Topic from a Paper
@@ -85,7 +131,7 @@ CORE is the foundation. TOPICS inherits from it — adds domain nuance, never co
 
 | Requirement | How to get |
 |-------------|------------|
-| Tavily API key | Free tier at [tavily.com](https://tavily.com) |
+| Web search tool (agent-side) | Whatever your agent uses — Tavily, Brave, native, etc. |
 | OpenClaw with cron daemon | `openclaw gateway start` |
 | Telegram bot or WhatsApp | For digest delivery |
 | Python 3 + PyYAML | `pip install pyyaml` |
@@ -93,16 +139,21 @@ CORE is the foundation. TOPICS inherits from it — adds domain nuance, never co
 ### Installation
 
 ```bash
-# Clone the repo
-git clone https://github.com/river/attention-research.git \
+# Install directly from GitHub with git
+mkdir -p ~/.openclaw/skills
+git clone https://github.com/riverho/attention-research.git \
   ~/.openclaw/skills/attention-research
-
-# Run setup
 cd ~/.openclaw/skills/attention-research
-./INSTALL/install.sh --fresh
+bash INSTALL/install.sh --fresh
 
-# Set your Tavily API key (stored in ~/.openclaw/workspace/.env)
-export TAVILY_API_KEY=tvly-xxxx
+# Or install directly from GitHub with curl
+mkdir -p ~/.openclaw/skills && \
+cd ~/.openclaw/skills && \
+curl -L https://github.com/riverho/attention-research/archive/refs/heads/master.tar.gz \
+  | tar -xz && \
+mv attention-research-master attention-research && \
+cd attention-research && \
+bash INSTALL/install.sh --fresh
 
 # Verify cron jobs registered
 openclaw cron status
@@ -124,6 +175,8 @@ Agent extracts the framework and shows you the topic prompt. Approve to activate
 
 ## Default Topics
 
+Public topic files currently included in the repo:
+
 | Topic | What it tracks |
 |-------|----------------|
 | `us-iran-conflict` | US-Iran tensions, Hormuz, nuclear talks, sanctions |
@@ -132,6 +185,13 @@ Agent extracts the framework and shows you the topic prompt. Approve to activate
 | `finance-markets` | Equities, bonds, rates, commodities, macro |
 | `climate-changes` | Physical events, policy, transition risk |
 | `bio-tech` | Clinical results, FDA decisions, drug pipelines |
+
+Initial OSS enabled set in `CONFIG/topics.yaml`:
+- `us-iran-conflict`
+- `ai`
+- `finance-markets`
+
+Other public topic files may remain in the repo as examples, but they do not need to be enabled by default.
 
 ---
 
@@ -142,11 +202,17 @@ Cron trigger (08:00 / 16:00 HKT)
     ↓
 research-executor.sh
     ↓
+Load TOPICS/<topic>.md as monitoring note
+    ↓
 META.json freshness gate
     ↓
-Tavily search (fresh topics only)
+Agent web search (fresh topics only)
     ↓
 Write news files
+    ↓
+Check topic thresholds / key event criteria
+    ↓
+Alert user when thresholds are met
     ↓
 Update META.json
     ↓
@@ -162,11 +228,11 @@ Deliver via Telegram/WhatsApp
 ```
 attention-research/
 ├── PROMPTS/
-│   ├── CORE/                    # Generic — no domain
+│   ├── CORE/                    # Generic analysis framework shared across topics
 │   │   ├── system-prompt.md
 │   │   ├── signal-rules.md
 │   │   └── digest-format.md
-│   ├── TOPICS/                  # Domain-specific — inherits CORE
+│   ├── TOPICS/                  # Topic-local methodology and analysis files
 │   │   ├── us-iran-conflict.md
 │   │   ├── ai.md
 │   │   ├── geopolitics.md
@@ -183,8 +249,7 @@ attention-research/
 │   ├── topics.yaml
 │   └── default-paths.yaml
 ├── SCHEMA/
-│   ├── META.json.template
-│   └── entity.schema.json
+│   └── META.json.template
 ├── SCRIPTS/
 │   ├── research-executor.sh
 │   └── setup-cron.sh
@@ -194,6 +259,12 @@ attention-research/
 ├── README.md
 └── package.json
 ```
+
+Design note:
+- shared reasoning belongs in `PROMPTS/CORE/`
+- topic-specific methodology belongs in each `PROMPTS/TOPICS/<topic>.md`
+- runtime state stays isolated per topic under the research root so one topic's artifacts do not contaminate another
+- OSS keeps the shared analysis framework generic; richer topic-specific thought layers can live separately in premium
 
 ---
 
@@ -205,7 +276,7 @@ clawhub publish ./attention-research \
   --slug attention-research \
   --name "Attention Research Pipeline" \
   --version 1.0.0 \
-  --changelog "Initial publish"
+  --changelog "First public OSS cut"
 ```
 
 ---
@@ -214,7 +285,7 @@ clawhub publish ./attention-research \
 
 | Version | Date | Summary |
 |---------|------|---------|
-| 1.0.0 | 2026-04-20 | Initial — CORE + TOPICS layered structure, 6 pre-built topics, paper-to-topic generator, requirements check, META.json freshness contract |
+| 1.0.0 | 2026-04-22 | First public OSS cut — CORE + TOPICS layered structure, 6 pre-built topics, paper-to-topic generator, META.json freshness contract, thin skill with agent-chosen web search |
 
 ---
 

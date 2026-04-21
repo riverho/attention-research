@@ -6,10 +6,9 @@
 set -euo pipefail
 
 SLOT=""
-RESEARCH_ROOT="${RESEARCH_ROOT:-$HOME/.openclaw/workspace/notes/research-v2}"
+RESEARCH_ROOT="${RESEARCH_ROOT:-$HOME/.openclaw/workspace/docs/research}"
 SKILL_ROOT="${ATTENTION_RESEARCH_ROOT:-$HOME/.openclaw/skills/attention-research}"
 CONFIG_DIR="$SKILL_ROOT/CONFIG"
-STATE_FILE="$HOME/.openclaw/workspace/memory/heartbeat-state.json"
 TODAY=$(date +%Y-%m-%d)
 NOW=$(date +%Y-%m-%dT%H:%M:%S%z)
 
@@ -24,13 +23,22 @@ done
 [[ -z "$SLOT" ]] && { echo "ERROR: --slot required"; exit 1; }
 [[ "$SLOT" != "morning" && "$SLOT" != "afternoon" ]] && { echo "ERROR: --slot must be morning or afternoon"; exit 1; }
 
+slot_field() {
+  case "$SLOT" in
+    morning) echo "lastMorningUpdate" ;;
+    afternoon) echo "lastAfternoonUpdate" ;;
+    *) echo "ERROR: invalid slot $SLOT" >&2; exit 1 ;;
+  esac
+}
+
 meta_check_fresh() {
   local topic="$1"
   local meta_file="$RESEARCH_ROOT/topics/$topic/META.json"
-  local slot_field="last${SLOT^}Update"
+  local slot_field_name
+  slot_field_name=$(slot_field)
   [[ ! -f "$meta_file" ]] && { echo "fresh"; return; }
   local last_update
-  last_update=$(python3 -c "import json; d=json.load(open('$meta_file')); print(d.get('$slot_field') or '')" 2>/dev/null || echo "")
+  last_update=$(python3 -c "import json; d=json.load(open('$meta_file')); print(d.get('$slot_field_name') or '')" 2>/dev/null || echo "")
   [[ "$last_update" == "$TODAY" ]] && { echo "fresh"; return; }
   local retry_count retry_date
   retry_count=$(python3 -c "import json; d=json.load(open('$meta_file')); print(d.get('retryCount', 0))" 2>/dev/null || echo "0")
@@ -41,6 +49,8 @@ meta_check_fresh() {
 meta_record_success() {
   local topic="$1"
   local meta_file="$RESEARCH_ROOT/topics/$topic/META.json"
+  local slot_field_name
+  slot_field_name=$(slot_field)
   [[ ! -f "$meta_file" ]] && return
   python3 - <<PY
 import json
@@ -48,7 +58,7 @@ meta = json.load(open('$meta_file'))
 meta['retryCount'] = 0
 meta['lastError'] = None
 meta['lastHeartbeatUpdate'] = '$NOW'
-meta['last${SLOT^}Update'] = '$TODAY'
+meta['$slot_field_name'] = '$TODAY'
 json.dump(meta, open('$meta_file', 'w'), indent=2)
 PY
 }
@@ -90,26 +100,25 @@ main() {
   echo "=== attention-research $SLOT: $TODAY ==="
   [[ ! -d "$RESEARCH_ROOT" ]] && { echo "ERROR: RESEARCH_ROOT not found: $RESEARCH_ROOT"; exit 1; }
 
+  # This script only identifies which topics need work for this slot.
+  # The agent invoked by the cron runner performs the search, writes news
+  # files, and calls meta_record_success after real work completes.
+  local pending=()
   for topic in $(get_topics); do
     init_topic_meta "$topic"
     freshness=$(meta_check_fresh "$topic")
     echo "Topic $topic: $freshness"
-    [[ "$freshness" == "fresh" ]] && continue
-    [[ "$freshness" == "exhausted" ]] && continue
-    # Sub-agent handles Tavily search and news file writing
-    # This script manages state and coordination
-    meta_record_success "$topic"
-    echo "Topic $topic: research complete"
+    case "$freshness" in
+      fresh|exhausted) continue ;;
+      *) pending+=("$topic") ;;
+    esac
   done
 
-  python3 - <<PY
-import json, pathlib
-p = pathlib.Path('$STATE_FILE')
-d = json.load(open(p)) if p.exists() else {}
-d['lastDigest'] = '$TODAY'
-d['lastDigestType'] = '$SLOT'
-json.dump(d, open(p, 'w'), indent=2)
-PY
+  if [[ ${#pending[@]} -eq 0 ]]; then
+    echo "No pending topics for $SLOT."
+  else
+    echo "Pending for $SLOT: ${pending[*]}"
+  fi
   echo "=== Done ==="
 }
 

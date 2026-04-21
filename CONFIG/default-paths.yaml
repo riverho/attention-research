@@ -1,7 +1,6 @@
-research_root: "~/.openclaw/workspace/notes/research-v2"
-skill_root: "~/.openclaw/skills/attention-research"
-cron_jobs: "~/.openclaw/cron/jobs.json"
-heartbeat_state: "~/.openclaw/workspace/memory/heartbeat-state.json"
+# Delivery config read by the agent at digest-delivery time.
+# All other paths are resolved by the scripts directly; they are not
+# read from this file.
 
 delivery:
   default_channel: "telegram"
@@ -9,15 +8,5 @@ delivery:
     chat_id: ""
   whatsapp:
     recipient: ""
-
-search:
-  provider: "tavily"
-  max_results: 8
-  morning_time_range: "day"
-  afternoon_time_range: "day"
-
-retry:
-  max_retries: 2
-  backoff_seconds: 30
 
 config_version: "1.0.0"

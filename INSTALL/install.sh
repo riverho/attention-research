@@ -23,25 +23,23 @@ done
 check_prereqs() {
   echo "=== Prerequisites ==="
   python3 --version || exit 1
-  python3 -c "import yaml" 2>/dev/null || { echo "Installing pyyaml..."; pip install pyyaml --break-system-packages --quiet; }
+  python3 -c "import yaml" 2>/dev/null || {
+    echo "Installing pyyaml..."
+    python3 -m pip install pyyaml --break-system-packages --quiet
+  }
   echo "  Python: ok"
   echo "  PyYAML: ok"
 }
 
 prompt_config() {
   echo "=== Configuration ==="
-  if [[ -z "${TAVILY_API_KEY:-}" ]]; then
-    echo -n "Tavily API key (get free key at tavily.com): "
-    read -r key
-    [[ -n "$key" ]] && export TAVILY_API_KEY="$key"
-  fi
-  echo -n "Telegram chat ID (e.g. 8660182605): "
-  read -r chat_id
-  echo "Set in ~/.openclaw/workspace/.env: TAVILY_API_KEY=$TAVILY_API_KEY"
+  echo "Web search: handled by the invoking agent's own search tool."
+  echo "Delivery channel (Telegram chat ID, WhatsApp recipient) is set"
+  echo "in CONFIG/default-paths.yaml. The agent reads it at delivery time."
 }
 
 ensure_topic_structure() {
-  local research_root="$HOME/.openclaw/workspace/notes/research-v2"
+  local research_root="$HOME/.openclaw/workspace/docs/research"
   mkdir -p "$research_root"
   python3 -c "
 import yaml, os, json, pathlib
@@ -49,7 +47,9 @@ import yaml, os, json, pathlib
 research_root = pathlib.Path('$research_root')
 cfg = yaml.safe_load(open('$CONFIG_DIR/topics.yaml'))
 
-for topic in cfg.get('topics', {}).keys():
+for topic, topic_cfg in cfg.get('topics', {}).items():
+    if not topic_cfg.get('enabled', True):
+        continue
     td = research_root / 'topics' / topic
     for sub in ['news', 'threads', 'entities', 'updates']:
         (td / sub).mkdir(parents=True, exist_ok=True)

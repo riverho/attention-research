@@ -14,7 +14,7 @@ topics:
   geopolitics:
     display_name: "Geopolitics"
     description: "Power shifts, diplomacy, bloc formation, trade wars"
-    enabled: true
+    enabled: false
     search_query: "geopolitics diplomacy trade war power shifts"
 
   finance-markets:
@@ -26,14 +26,14 @@ topics:
   climate-changes:
     display_name: "Climate Changes"
     description: "Physical events, policy, transition risk"
-    enabled: true
+    enabled: false
     search_query: "climate change extreme weather energy transition"
 
   bio-tech:
     display_name: "Biotech"
     description: "Clinical results, FDA decisions, drug pipelines"
-    enabled: true
+    enabled: false
     search_query: "biotech clinical results FDA drug approval"
 
 config_version: "1.0.0"
-last_updated: "2026-04-20"
+last_updated: "2026-04-21"

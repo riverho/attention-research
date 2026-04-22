@@ -52,7 +52,7 @@ main() {
   echo "=== setup-cron ==="
   ensure_cron_file
   register_job "AR morning digest" "0 8 * * *" "$SKILL_ROOT/SCRIPTS/research-executor.sh --slot morning"
-  register_job "AR afternoon update" "0 16 * * *" "$SKILL_ROOT/SCRIPTS/research-executor.sh --slot afternoon"
+  register_job "AR afternoon thread update" "0 16 * * *" "$SKILL_ROOT/SCRIPTS/research-executor.sh --slot afternoon"
   echo "=== Done ==="
 }
 
